@@ -11,6 +11,28 @@ export const TOKEN_SERVER_URL = 'https://nmpc.hse.ie/authorisation/auth/realms/t
 
 // In dev, requests go through Vite proxy to avoid CORS. In production, direct.
 export const API_BASE_URL = import.meta.env.DEV ? '/fhir-api' : FHIR_SERVER_URL
+export const TOKEN_URL = import.meta.env.DEV
+  ? '/auth-api/realms/terminology/protocol/openid-connect/token'
+  : TOKEN_SERVER_URL
+
+export function buildExpandUrl(ecl, properties = []) {
+  const url = `http://snomed.info/sct?fhir_vs=ecl/${ecl}`
+  let expandUrl = `${API_BASE_URL}/ValueSet/$expand?url=${encodeURIComponent(url)}`
+  for (const prop of properties) {
+    expandUrl += `&property=${encodeURIComponent(prop.code)}`
+  }
+  return expandUrl
+}
+
+export function buildSearchUrl(ecl, filter) {
+  const url = `http://snomed.info/sct?fhir_vs=ecl/${ecl}`
+  return `${API_BASE_URL}/ValueSet/$expand?url=${encodeURIComponent(url)}&filter=${encodeURIComponent(filter)}&count=20`
+}
+
+export function buildLookupUrl(code) {
+  return `${API_BASE_URL}/CodeSystem/$lookup?system=${encodeURIComponent('http://snomed.info/sct')}&code=${encodeURIComponent(code)}&property=*&property=609096000`
+}
+
 export const queryGroups = [
   {
     id: 'industry',
@@ -38,120 +60,6 @@ export const queryGroups = [
           }
         ]
       }
-    ]
-  }
-]
-        properties: [
-          { code: '411116001', label: 'Dose Form' },
-          { code: '680061000220102', label: 'MA Holder' }
-        ],
-        extraColumns: [],
-        params: [
-          {
-            key: 'maholder',
-            label: 'Manufacturing Holder',
-            type: 'valueset-search',
-            valuesetEcl: '< 774164004',
-            placeholder: 'Type to search for a manufacturing holder…',
-            required: true
-          }
-        ]
-      },
-      {
-        id: 'industry-amps-by-supplier',
-        name: 'AMPs by Supplier',
-        description: 'Find all AMPs (Actual Medicinal Products) for a specific supplier',
-        ecl: '^ 659161000220101 : 680061000220102 = {{supplier}}',
-        properties: [
-          { code: '411116001', label: 'Dose Form' },
-          { code: '680061000220102', label: 'MA Holder' }
-        ],
-        extraColumns: [],
-        params: [
-          {
-            key: 'supplier',
-            label: 'Supplier',
-            type: 'valueset-search',
-            valuesetEcl: '< 774164004',
-            placeholder: 'Type to search for a supplier…',
-            required: true
-          }
-        ]
-      },
-      {
-        id: 'industry-concept-lookup',
-        name: 'Concept Property Lookup',
-        description: 'Look up all properties for a given SNOMED CT code',
-        type: 'lookup',
-        params: [
-          {
-            key: 'code',
-            label: 'SNOMED CT Code',
-            type: 'text',
-            placeholder: 'Enter a SNOMED CT code, e.g. 621391000220109',
-            required: true
-          }
-        ]
-      },
-      { id: 'industry-4', name: 'Query 4', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'industry-5', name: 'Query 5', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'industry-6', name: 'Query 6', description: 'Placeholder query', ecl: '', params: [] }
-    ]
-  },
-  {
-    id: 'quality',
-    name: 'Quality',
-    icon: '✅',
-    description: 'Quality assurance and control queries',
-    queries: [
-      { id: 'quality-1', name: 'Query 1', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'quality-2', name: 'Query 2', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'quality-3', name: 'Query 3', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'quality-4', name: 'Query 4', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'quality-5', name: 'Query 5', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'quality-6', name: 'Query 6', description: 'Placeholder query', ecl: '', params: [] }
-    ]
-  },
-  {
-    id: 'content',
-    name: 'Content',
-    icon: '📝',
-    description: 'Content management and review queries',
-    queries: [
-      { id: 'content-1', name: 'Query 1', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'content-2', name: 'Query 2', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'content-3', name: 'Query 3', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'content-4', name: 'Query 4', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'content-5', name: 'Query 5', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'content-6', name: 'Query 6', description: 'Placeholder query', ecl: '', params: [] }
-    ]
-  },
-  {
-    id: 'hold1',
-    name: 'Hold',
-    icon: '⏸️',
-    description: 'Hold group — reserved for future queries',
-    queries: [
-      { id: 'hold1-1', name: 'Query 1', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold1-2', name: 'Query 2', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold1-3', name: 'Query 3', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold1-4', name: 'Query 4', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold1-5', name: 'Query 5', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold1-6', name: 'Query 6', description: 'Placeholder query', ecl: '', params: [] }
-    ]
-  },
-  {
-    id: 'hold2',
-    name: 'Hold',
-    icon: '⏸️',
-    description: 'Hold group — reserved for future queries',
-    queries: [
-      { id: 'hold2-1', name: 'Query 1', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold2-2', name: 'Query 2', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold2-3', name: 'Query 3', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold2-4', name: 'Query 4', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold2-5', name: 'Query 5', description: 'Placeholder query', ecl: '', params: [] },
-      { id: 'hold2-6', name: 'Query 6', description: 'Placeholder query', ecl: '', params: [] }
     ]
   }
 ]

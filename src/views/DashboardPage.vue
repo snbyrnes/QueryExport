@@ -11,17 +11,13 @@
     </aside>
     <main class="main-content">
       <div class="query-panel" style="margin: 2rem auto; max-width: 900px;">
-        <h2>{{ queries[0].name }}</h2>
-        <p class="query-desc">{{ queries[0].description }}</p>
-        <div class="run-bar" style="margin: 2rem 0;">
-          <button class="run-btn" @click="runQuery" :disabled="loading || !hasCredentials">
-            <span v-if="loading" class="spinner"></span>
-            <span v-else>▶</span>
-            {{ loading ? 'Running...' : 'Run Query' }}
-          </button>
-          <span v-if="lastRunTime" class="run-time">Completed in {{ lastRunTime }}ms</span>
-        </div>
-        <div v-if="error" class="error-banner">
+        <button class="run-btn" @click="runQuery" :disabled="loading || !hasCredentials" style="margin: 2rem 0; min-width: 180px; font-size: 1.2rem;">
+          <span v-if="loading" class="spinner"></span>
+          <span v-else>▶</span>
+          {{ loading ? 'Loading...' : 'Get All AMPPs' }}
+        </button>
+        <span v-if="lastRunTime" class="run-time">Completed in {{ lastRunTime }}ms</span>
+        <div v-if="error" class="error-banner" style="margin-top: 1rem;">
           <span>⚠️</span> {{ error }}
         </div>
         <div v-if="results.length > 0" class="results-section">

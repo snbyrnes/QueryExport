@@ -743,8 +743,9 @@ async function runQuery() {
               row[label] = val
             }
           }
+          row.System = c.system || ''
         } else {
-          // Named properties only
+          // Named properties only — columns are explicitly defined, no System appended
           for (const qp of queryProps) {
             const prop = (c.property || []).find(p => p.code === qp.code)
             if (prop) {
@@ -765,7 +766,6 @@ async function runQuery() {
           }
         }
 
-        row.System = c.system || ''
         return row
       })
     }

@@ -62,8 +62,8 @@ export const queryGroups = [
         description: 'Find all AMPPs (Actual Medicinal Product Packs) for a specific supplier',
         ecl: '^ 660401000220107 : 680061000220102 = {{supplier}}',
         properties: [
-          { code: '*', label: '__all__' },
-          { code: '609096000', label: '__rolegroup__' }
+          { code: '411116001', label: 'Dose Form' },
+          { code: '680061000220102', label: 'MA Holder' }
         ],
         extraColumns: [],
         params: [
@@ -83,8 +83,8 @@ export const queryGroups = [
         description: 'Find all AMPs (Actual Medicinal Products) for a specific supplier',
         ecl: '^ 659161000220101 : 680061000220102 = {{supplier}}',
         properties: [
-          { code: '*', label: '__all__' },
-          { code: '609096000', label: '__rolegroup__' }
+          { code: '411116001', label: 'Dose Form' },
+          { code: '680061000220102', label: 'MA Holder' }
         ],
         extraColumns: [],
         params: [

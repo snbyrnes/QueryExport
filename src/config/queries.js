@@ -81,7 +81,7 @@ export const queryGroups = [
         id: 'industry-amps-by-maholder',
         name: 'AMPs by Manufacturing Holder',
         description: 'Find all AMPs (Actual Medicinal Products) for a manufacturing holder (free text search)',
-        ecl: '^ 659161000220101 : 680061000220102 = {{maholder}}',
+        ecl: '^ 660381000220107 : 680061000220102 = {{maholder}}',
         properties: [
           { code: '411116001', label: 'Dose Form' },
           { code: '680061000220102', label: 'MA Holder' }

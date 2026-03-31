@@ -11,44 +11,6 @@ export const TOKEN_SERVER_URL = 'https://nmpc.hse.ie/authorisation/auth/realms/t
 
 // In dev, requests go through Vite proxy to avoid CORS. In production, direct.
 export const API_BASE_URL = import.meta.env.DEV ? '/fhir-api' : FHIR_SERVER_URL
-export const TOKEN_URL = import.meta.env.DEV
-  ? '/auth-api/realms/terminology/protocol/openid-connect/token'
-  : TOKEN_SERVER_URL
-
-/**
- * Build the FHIR ValueSet/$expand URL for an ECL expression.
- * @param {string} ecl - The ECL expression (already substituted with param values)
- * @returns {string} The full URL path for ValueSet/$expand
- */
-export function buildExpandUrl(ecl, properties = []) {
-  const url = `http://snomed.info/sct?fhir_vs=ecl/${ecl}`
-  let expandUrl = `${API_BASE_URL}/ValueSet/$expand?url=${encodeURIComponent(url)}`
-  for (const prop of properties) {
-    expandUrl += `&property=${encodeURIComponent(prop.code)}`
-  }
-  return expandUrl
-}
-
-/**
- * Build the FHIR ValueSet/$expand URL for a typeahead search.
- * @param {string} ecl - The ECL constraint for the valueset
- * @param {string} filter - The user's search text
- * @returns {string} The full URL path for ValueSet/$expand with filter
- */
-export function buildSearchUrl(ecl, filter) {
-  const url = `http://snomed.info/sct?fhir_vs=ecl/${ecl}`
-  return `${API_BASE_URL}/ValueSet/$expand?url=${encodeURIComponent(url)}&filter=${encodeURIComponent(filter)}&count=20`
-}
-
-/**
- * Build the FHIR CodeSystem/$lookup URL for a single concept.
- * @param {string} code - The SNOMED CT code to look up
- * @returns {string} The full URL path for CodeSystem/$lookup
- */
-export function buildLookupUrl(code) {
-  return `${API_BASE_URL}/CodeSystem/$lookup?system=${encodeURIComponent('http://snomed.info/sct')}&code=${encodeURIComponent(code)}&property=*&property=609096000`
-}
-
 export const queryGroups = [
   {
     id: 'industry',
@@ -56,52 +18,29 @@ export const queryGroups = [
     icon: '🏭',
     description: 'Industry-related queries and lookups',
     queries: [
-            {
-              id: 'industry-ampps-by-maholder',
-              name: 'AMPPs by MA Holder (all properties)',
-              description: 'Find all AMPPs (Actual Medicinal Product Packs) for a manufacturing authorisation holder, returning all properties and subproperties.',
-              ecl: '^ 660361000220103 : 680061000220102 = {{maholder}}',
-              properties: [
-                { code: '*', label: '__all__' }
-              ],
-              extraColumns: [],
-              params: [
-                {
-                  key: 'maholder',
-                  label: 'MA Holder',
-                  type: 'valueset-search',
-                  valuesetEcl: '< 774164004',
-                  placeholder: 'Type to search for a manufacturing holder…',
-                  required: true
-                }
-              ]
-            },
       {
-        id: 'industry-ampps-by-supplier',
-        name: 'AMPPs by Supplier',
-        description: 'Find all AMPPs (Actual Medicinal Product Packs) for a specific supplier',
-        ecl: '^ 660401000220107 : 680061000220102 = {{supplier}}',
+        id: 'industry-ampps-by-maholder',
+        name: 'AMPPs by MA Holder (all properties)',
+        description: 'Find all AMPPs (Actual Medicinal Product Packs) for a manufacturing authorisation holder, returning all properties and subproperties.',
+        ecl: '^ 660361000220103 : 680061000220102 = {{maholder}}',
         properties: [
-          { code: '411116001', label: 'Dose Form' },
-          { code: '680061000220102', label: 'MA Holder' }
+          { code: '*', label: '__all__' }
         ],
         extraColumns: [],
         params: [
           {
-            key: 'supplier',
-            label: 'Supplier',
+            key: 'maholder',
+            label: 'MA Holder',
             type: 'valueset-search',
             valuesetEcl: '< 774164004',
-            placeholder: 'Type to search for a supplier…',
+            placeholder: 'Type to search for a manufacturing holder…',
             required: true
           }
         ]
-      },
-      {
-        id: 'industry-amps-by-maholder',
-        name: 'AMPs by Manufacturing Holder',
-        description: 'Find all AMPs (Actual Medicinal Products) for a manufacturing holder (free text search)',
-        ecl: '^ 660381000220107 : 680061000220102 = {{maholder}}',
+      }
+    ]
+  }
+]
         properties: [
           { code: '411116001', label: 'Dose Form' },
           { code: '680061000220102', label: 'MA Holder' }

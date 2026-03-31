@@ -78,6 +78,27 @@ export const queryGroups = [
         ]
       },
       {
+        id: 'industry-amps-by-maholder',
+        name: 'AMPs by Manufacturing Holder',
+        description: 'Find all AMPs (Actual Medicinal Products) for a manufacturing holder (free text search)',
+        ecl: '^ 659161000220101 : 680061000220102 = {{maholder}}',
+        properties: [
+          { code: '411116001', label: 'Dose Form' },
+          { code: '680061000220102', label: 'MA Holder' }
+        ],
+        extraColumns: [],
+        params: [
+          {
+            key: 'maholder',
+            label: 'Manufacturing Holder',
+            type: 'valueset-search',
+            valuesetEcl: '< 774164004',
+            placeholder: 'Type to search for a manufacturing holder…',
+            required: true
+          }
+        ]
+      },
+      {
         id: 'industry-amps-by-supplier',
         name: 'AMPs by Supplier',
         description: 'Find all AMPs (Actual Medicinal Products) for a specific supplier',

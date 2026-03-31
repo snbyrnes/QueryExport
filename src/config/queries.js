@@ -33,33 +33,16 @@ export function buildLookupUrl(code) {
   return `${API_BASE_URL}/CodeSystem/$lookup?system=${encodeURIComponent('http://snomed.info/sct')}&code=${encodeURIComponent(code)}&property=*&property=609096000`
 }
 
-export const queryGroups = [
+export const queries = [
   {
-    id: 'industry',
-    name: 'Industry',
-    icon: '🏭',
-    description: 'Industry-related queries and lookups',
-    queries: [
-      {
-        id: 'industry-ampps-by-maholder',
-        name: 'AMPPs by MA Holder (all properties)',
-        description: 'Find all AMPPs (Actual Medicinal Product Packs) for a manufacturing authorisation holder, returning all properties and subproperties.',
-        ecl: '^ 660361000220103 : 680061000220102 = {{maholder}}',
-        properties: [
-          { code: '*', label: '__all__' }
-        ],
-        extraColumns: [],
-        params: [
-          {
-            key: 'maholder',
-            label: 'MA Holder',
-            type: 'valueset-search',
-            valuesetEcl: '< 774164004',
-            placeholder: 'Type to search for a manufacturing holder…',
-            required: true
-          }
-        ]
-      }
-    ]
+    id: 'all-ampps',
+    name: 'All AMPPs (all properties)',
+    description: 'Return all members of the AMPP reference set with all properties and subproperties.',
+    ecl: '^ 660361000220103',
+    properties: [
+      { code: '*', label: '__all__' }
+    ],
+    extraColumns: [],
+    params: []
   }
 ]

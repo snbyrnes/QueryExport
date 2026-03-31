@@ -1,182 +1,63 @@
+
 <template>
   <div class="dashboard">
-    <!-- Sidebar -->
-    <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+    <aside class="sidebar">
       <div class="sidebar-header">
-        <span v-if="!sidebarCollapsed" class="brand">⚡ QueryExport</span>
-        <button class="toggle-btn" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'Expand' : 'Collapse'">
-          {{ sidebarCollapsed ? '☰' : '✕' }}
-        </button>
+        <span class="brand">⚡ QueryExport</span>
       </div>
-
       <nav class="sidebar-nav">
-        <div
-          v-for="group in queryGroups"
-          :key="group.id"
-          class="nav-group"
-        >
-          <button
-            class="nav-group-header"
-            :class="{ active: activeGroup === group.id }"
-            @click="toggleGroup(group.id)"
-          >
-            <span class="group-icon">{{ group.icon }}</span>
-            <span v-if="!sidebarCollapsed" class="group-name">{{ group.name }}</span>
-            <span v-if="!sidebarCollapsed" class="chevron" :class="{ open: expandedGroups.has(group.id) }">›</span>
-          </button>
-          <transition name="slide">
-            <ul v-if="expandedGroups.has(group.id) && !sidebarCollapsed" class="query-list">
-              <li
-                v-for="query in group.queries"
-                :key="query.id"
-                class="query-item"
-                :class="{ selected: selectedQuery?.id === query.id }"
-                @click="selectQuery(group, query)"
-              >
-                {{ query.name }}
-              </li>
-            </ul>
-          </transition>
-        </div>
+        <button class="query-btn" @click="selected = 0">All AMPPs</button>
       </nav>
-
-      <div class="sidebar-footer">
-        <button class="logout-btn" @click="logout" :title="sidebarCollapsed ? 'Logout' : ''">
-          <span>🔒</span>
-          <span v-if="!sidebarCollapsed">Logout</span>
-        </button>
-      </div>
     </aside>
-
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Header -->
-      <header class="top-bar">
-        <div class="breadcrumb">
-          <span v-if="activeGroupData">{{ activeGroupData.icon }} {{ activeGroupData.name }}</span>
-          <span v-if="selectedQuery" class="crumb-sep">/</span>
-          <span v-if="selectedQuery" class="crumb-query">{{ selectedQuery.name }}</span>
-        </div>
-        <div class="top-bar-actions">
-          <span v-if="hasCredentials" class="cred-status connected" title="API credentials configured">● Connected</span>
-          <span v-else class="cred-status disconnected" title="No API credentials">● No credentials</span>
-          <button class="settings-btn" @click="showSettings = true" title="API Settings">
-            ⚙️
+      <div class="query-panel" style="margin: 2rem auto; max-width: 900px;">
+        <h2>{{ queries[0].name }}</h2>
+        <p class="query-desc">{{ queries[0].description }}</p>
+        <div class="run-bar" style="margin: 2rem 0;">
+          <button class="run-btn" @click="runQuery" :disabled="loading || !hasCredentials">
+            <span v-if="loading" class="spinner"></span>
+            <span v-else>▶</span>
+            {{ loading ? 'Running...' : 'Run Query' }}
           </button>
+          <span v-if="lastRunTime" class="run-time">Completed in {{ lastRunTime }}ms</span>
         </div>
-      </header>
-
-      <!-- Settings Modal -->
-      <teleport to="body">
-        <transition name="fade">
-          <div v-if="showSettings" class="modal-overlay" @click.self="showSettings = false">
-            <div class="modal-card">
-              <div class="modal-header">
-                <h3>API Settings</h3>
-                <button class="modal-close" @click="showSettings = false">✕</button>
-              </div>
-              <div class="modal-body">
-                <div class="api-info-box">
-                  <div class="api-info-row">
-                    <span class="api-info-label">FHIR Server</span>
-                    <code class="api-info-value">{{ FHIR_SERVER_URL }}</code>
-                  </div>
-                  <div class="api-info-row">
-                    <span class="api-info-label">Auth</span>
-                    <span class="api-info-value">OAuth2 Client Credentials</span>
-                  </div>
-                  <div class="api-info-row">
-                    <span class="api-info-label">Token Endpoint</span>
-                    <code class="api-info-value">{{ TOKEN_SERVER_URL }}</code>
-                  </div>
-                  <div class="api-info-row">
-                    <span class="api-info-label">Status</span>
-                    <span v-if="connectionStatus === 'connected'" class="api-info-value status-ok">● Connected</span>
-                    <span v-else-if="connectionStatus === 'error'" class="api-info-value status-err">● Connection failed</span>
-                    <span v-else-if="connectionStatus === 'testing'" class="api-info-value status-testing">○ Connecting…</span>
-                    <span v-else class="api-info-value status-none">○ Not connected</span>
-                  </div>
-                </div>
-
-                <div v-if="connectionDetails" class="connection-details">
-                  <div v-for="(val, key) in connectionDetails" :key="key" class="conn-detail-row">
-                    <span class="conn-detail-label">{{ key }}</span>
-                    <span class="conn-detail-value">{{ val }}</span>
-                  </div>
-                </div>
-                <div v-if="connectionError" class="conn-error">{{ connectionError }}</div>
-
-                <p class="modal-desc">Enter your OAuth2 client credentials. The app will exchange these for a bearer token. Credentials are stored in your browser session only.</p>
-                <div class="modal-field">
-                  <label for="s-token">Client ID</label>
-                  <input id="s-token" v-model="tokenInput" type="text" placeholder="Enter your client ID" autocomplete="off" />
-                </div>
-                <div class="modal-field">
-                  <label for="s-secret">Client Secret</label>
-                  <input id="s-secret" v-model="secretInput" type="password" placeholder="Enter your client secret" autocomplete="off" />
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button class="modal-btn cancel" @click="showSettings = false">Cancel</button>
-                <button class="modal-btn test" @click="testConnection" :disabled="!tokenInput.trim() || !secretInput.trim() || connectionStatus === 'testing'">Test</button>
-                <button class="modal-btn save" @click="saveCredentials" :disabled="!tokenInput.trim() || !secretInput.trim()">Save</button>
-              </div>
+        <div v-if="error" class="error-banner">
+          <span>⚠️</span> {{ error }}
+        </div>
+        <div v-if="results.length > 0" class="results-section">
+          <div class="results-toolbar">
+            <span class="result-count">{{ results.length }} record{{ results.length !== 1 ? 's' : '' }}<span v-if="resultTotal !== null && resultTotal !== results.length"> ({{ resultTotal }} total)</span></span>
+            <div class="export-btns">
+              <button @click="exportCSV" class="export-btn csv">📄 CSV</button>
+              <button @click="exportExcel" class="export-btn excel">📊 Excel</button>
+              <button @click="exportJSON" class="export-btn json">{ } JSON</button>
             </div>
           </div>
-        </transition>
-      </teleport>
-
-      <!-- Empty State -->
-      <div v-if="!selectedQuery" class="empty-state">
-        <div class="empty-icon">🔍</div>
-        <h2>Select a Query</h2>
-        <p>Choose a query from the sidebar to get started. Results can be viewed and exported.</p>
-        <div class="group-cards">
-          <div
-            v-for="group in queryGroups"
-            :key="group.id"
-            class="group-card"
-            @click="toggleGroup(group.id); sidebarCollapsed = false"
-          >
-            <span class="card-icon">{{ group.icon }}</span>
-            <h3>{{ group.name }}</h3>
-            <p>{{ group.queries.length }} queries</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th v-for="col in columns" :key="col" @click="sortBy(col)" class="sortable">
+                    {{ col }}
+                    <span v-if="sortColumn === col" class="sort-arrow">{{ sortDirection === 'asc' ? '▲' : '▼' }}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, idx) in sortedResults" :key="idx">
+                  <td v-for="col in columns" :key="col">{{ formatCell(row[col]) }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
+        <div v-if="hasRun && results.length === 0 && !loading && !error" class="no-results">
+          <span>📭</span> No results found.
         </div>
       </div>
-
-      <!-- Query Panel -->
-      <div v-else class="query-panel">
-        <div class="query-header">
-          <div>
-            <h2>{{ selectedQuery.name }}</h2>
-            <p class="query-desc">{{ selectedQuery.description }}</p>
-          </div>
-          <div v-if="selectedQuery.ecl" class="query-meta">
-            <span class="method-badge get">FHIR</span>
-            <code class="endpoint">ValueSet/$expand</code>
-          </div>
-          <div v-else-if="selectedQuery.type === 'lookup'" class="query-meta">
-            <span class="method-badge get">FHIR</span>
-            <code class="endpoint">CodeSystem/$lookup</code>
-          </div>
-          <div v-else class="query-meta">
-            <span class="method-badge placeholder-badge">Placeholder</span>
-          </div>
-        </div>
-
-        <!-- ECL Preview -->
-        <div v-if="selectedQuery.ecl" class="ecl-preview">
-          <span class="ecl-label">ECL</span>
-          <code class="ecl-code">{{ selectedQuery.ecl }}</code>
-        </div>
-
-        <!-- Parameters -->
-        <div v-if="visibleParams.length > 0" class="params-section">
-          <h3>Parameters</h3>
-          <div class="params-grid">
-            <div v-for="param in visibleParams" :key="param.key" class="param-field">
-              <label :for="'p-' + param.key">
+    </main>
+  </div>
+</template>
                 {{ param.label }}
                 <span v-if="param.required" class="required">*</span>
               </label>
@@ -286,17 +167,14 @@
 <script setup>
 import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { queryGroups, API_BASE_URL, FHIR_SERVER_URL, TOKEN_URL, TOKEN_SERVER_URL, buildExpandUrl, buildSearchUrl, buildLookupUrl } from '../config/queries.js'
+import { queries, API_BASE_URL, FHIR_SERVER_URL, TOKEN_URL, TOKEN_SERVER_URL, buildExpandUrl, buildSearchUrl, buildLookupUrl } from '../config/queries.js'
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
 
 const router = useRouter()
 
-// Sidebar state
-const sidebarCollapsed = ref(false)
-const expandedGroups = ref(new Set())
-const activeGroup = ref(null)
-const selectedQuery = ref(null)
+
+const selected = ref(0)
 
 // Settings modal state
 const showSettings = ref(false)
@@ -446,24 +324,8 @@ let typeaheadTimers = {}
 const sortColumn = ref('')
 const sortDirection = ref('asc')
 
-const activeGroupData = computed(() => queryGroups.find(g => g.id === activeGroup.value))
 
-const visibleParams = computed(() => {
-  if (!selectedQuery.value) return []
-  return selectedQuery.value.params || []
-})
-
-const canRun = computed(() => {
-  if (!selectedQuery.value) return false
-  const q = selectedQuery.value
-  if (!q.ecl && q.type !== 'lookup') return false
-  return (q.params || [])
-    .filter(p => p.required)
-    .every(p => {
-      if (p.type === 'valueset-search') return paramSelections[p.key]?.code
-      return paramValues[p.key]?.toString().trim()
-    })
-})
+const canRun = computed(() => true)
 
 const columns = computed(() => {
   if (results.value.length === 0) return []
@@ -491,26 +353,7 @@ function toggleGroup(groupId) {
   activeGroup.value = groupId
 }
 
-function selectQuery(group, query) {
-  activeGroup.value = group.id
-  selectedQuery.value = query
-  error.value = ''
-  results.value = []
-  hasRun.value = false
-  lastRunTime.value = null
-  resultTotal.value = null
-  sortColumn.value = ''
 
-  // Reset param values
-  Object.keys(paramValues).forEach(k => delete paramValues[k])
-  Object.keys(paramSelections).forEach(k => delete paramSelections[k])
-  Object.keys(typeaheadResults).forEach(k => delete typeaheadResults[k])
-  Object.keys(typeaheadLoading).forEach(k => delete typeaheadLoading[k])
-  Object.keys(typeaheadOpen).forEach(k => delete typeaheadOpen[k])
-  ;(query.params || []).forEach(p => {
-    paramValues[p.key] = ''
-  })
-}
 
 function onTypeaheadInput(param) {
   const key = param.key

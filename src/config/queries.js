@@ -56,6 +56,26 @@ export const queryGroups = [
     icon: '🏭',
     description: 'Industry-related queries and lookups',
     queries: [
+            {
+              id: 'industry-ampps-by-maholder',
+              name: 'AMPPs by MA Holder (all properties)',
+              description: 'Find all AMPPs (Actual Medicinal Product Packs) for a manufacturing authorisation holder, returning all properties and subproperties.',
+              ecl: '^ 660361000220103 : 680061000220102 = {{maholder}}',
+              properties: [
+                { code: '*', label: '__all__' }
+              ],
+              extraColumns: [],
+              params: [
+                {
+                  key: 'maholder',
+                  label: 'MA Holder',
+                  type: 'valueset-search',
+                  valuesetEcl: '< 774164004',
+                  placeholder: 'Type to search for a manufacturing holder…',
+                  required: true
+                }
+              ]
+            },
       {
         id: 'industry-ampps-by-supplier',
         name: 'AMPPs by Supplier',
